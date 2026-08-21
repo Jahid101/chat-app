@@ -1,15 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  ArrowUpRight,
-  Hash,
-  Menu,
-  MessagesSquare,
-  Users,
-} from "lucide-react";
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
 import { ChatSkeleton } from "@/components/chat/chat-skeleton";
 import { ConnectionStatus } from "@/components/chat/connection-status";
@@ -18,6 +8,10 @@ import { MessageList } from "@/components/chat/message-list";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/use-chat";
+import { Hash, Menu, MessagesSquare, Users } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function ChatView() {
   const router = useRouter();
@@ -27,6 +21,7 @@ export function ChatView() {
     conversations,
     messages,
     connection,
+    initializing,
     send,
     logout,
     markConversationRead,
@@ -50,7 +45,7 @@ export function ChatView() {
     if (sessionChecked && !token) router.replace("/");
   }, [router, sessionChecked, token]);
 
-  if (!sessionChecked || !token) return <ChatSkeleton />;
+  if (!sessionChecked || !token || initializing) return <ChatSkeleton />;
 
   const active =
     conversations.find((item) => item.id === activeId) ?? conversations[0];
@@ -79,16 +74,7 @@ export function ChatView() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="flex h-16 items-center justify-between border-b border-border px-4 md:px-8">
-        {/* <Link
-          href="/"
-          className="flex items-center gap-2 font-semibold tracking-tight"
-        >
-          <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="size-4" />
-          </span>
-          Chatty
-        </Link> */}
+      <header className="flex h-19 items-center justify-between border-b border-border">
         <Link
           href="/"
           className="flex items-center gap-2 font-semibold tracking-tight group"
@@ -99,7 +85,7 @@ export function ChatView() {
           Chatty
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ConnectionStatus status={connection} />
           <ThemeToggle />
           {/* <Link
@@ -111,7 +97,7 @@ export function ChatView() {
         </div>
       </header>
 
-      <main className="mx-auto flex h-[calc(100vh-4rem)] max-w-[1440px] overflow-hidden">
+      <main className="mx-auto flex h-[calc(100vh-109px)] max-w-360 overflow-hidden">
         <ChatSidebar
           conversations={conversations}
           activeId={active?.id}
@@ -177,6 +163,13 @@ export function ChatView() {
           )}
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-5 py-2 md:px-10">
+        <div className="mx-auto max-w-7xl flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-center">Chatty — a quieter way to stay close.</p>
+        </div>
+      </footer>
     </div>
   );
 }

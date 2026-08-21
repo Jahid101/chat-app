@@ -35,6 +35,11 @@ export function useChat() {
   const [connection, setConnection] = useState<ConnectionState>(() =>
     readToken() ? "connecting" : "demo",
   );
+  // True while the session (me + conversations) is being fetched for a token;
+  // lets views hold a skeleton instead of flashing default data.
+  const [initializing, setInitializing] = useState<boolean>(
+    () => Boolean(readToken()),
+  );
 
   const invalidateSession = useCallback(() => {
     clearToken();
@@ -43,13 +48,20 @@ export function useChat() {
     setConversations(demoConversations);
     setMessages(demoMessages);
     setConnection("demo");
+    setInitializing(false);
   }, []);
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
+    let pending = 2;
+    const settle = () => {
+      if (!cancelled && --pending === 0) setInitializing(false);
+    };
 
     setConnection("connecting");
+    setInitializing(true);
+
     chatApi
       .me(token)
       .then((raw) => {
@@ -62,7 +74,8 @@ export function useChat() {
           return;
         }
         setConnection("offline");
-      });
+      })
+      .finally(settle);
 
     fetchConversations(token)
       .then((next) => {
@@ -70,12 +83,13 @@ export function useChat() {
       })
       .catch(() => {
         if (!cancelled) setConnection("offline");
-      });
+      })
+      .finally(settle);
 
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [invalidateSession, token]);
 
   useEffect(() => {
     if (!token) return;
@@ -198,6 +212,7 @@ export function useChat() {
     conversations,
     messages,
     connection,
+    initializing,
     send,
     login,
     logout,

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <div className="mx-auto max-w-[1920px]">
+    <div className="mx-auto max-w-360">
       <ChatView />
     </div>
   );
