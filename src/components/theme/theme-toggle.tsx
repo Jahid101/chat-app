@@ -8,9 +8,10 @@ export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       aria-label="Toggle theme"
+      className="cursor-pointer hover:scale-105 active:scale-95 hover:border-primary hover:dark:border-white"
       onClick={toggleTheme}
     >
       {theme === "light" ? <Moon /> : <Sun />}

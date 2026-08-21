@@ -1,7 +1,7 @@
-import { Sparkles } from "lucide-react";
-import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { buttonVariants } from "@/components/ui/button";
+import { MessageSquare, MessagesSquare } from "lucide-react";
+import Link from "next/link";
+import { HeroCta } from "./hero-cta";
 
 export function LandingHeader() {
   return (
@@ -10,8 +10,8 @@ export function LandingHeader() {
         href="/"
         className="flex items-center gap-2 font-semibold tracking-tight"
       >
-        <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground">
-          <Sparkles className="size-4" />
+        <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+          <MessagesSquare className="size-4" />
         </span>
         Chatty
       </Link>
@@ -19,18 +19,16 @@ export function LandingHeader() {
         <a href="#why" className="hover:text-foreground">
           Why it works
         </a>
-        <a href="#preview" className="hover:text-foreground">
-          Preview
-        </a>
         <a href="#principles" className="hover:text-foreground">
           Principles
         </a>
       </nav>
       <div className="flex items-center gap-2">
         <ThemeToggle />
-        <Link href="/chat" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Open chat
-        </Link>
+        {/* <Link href="/chat" className={buttonVariants({ variant: "outline", size: "sm" })}>
+          Let's chat
+        </Link> */}
+        <HeroCta text="Let's chat" />
       </div>
     </header>
   );

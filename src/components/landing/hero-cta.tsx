@@ -8,7 +8,11 @@ function pulseHaptic() {
   if ("vibrate" in navigator) navigator.vibrate(8);
 }
 
-export function HeroCta() {
+export function HeroCta({
+  text = "Enter your conversations",
+}: {
+  text?: string;
+}) {
   return (
     <Link
       href="/chat"
@@ -28,7 +32,7 @@ export function HeroCta() {
         ].join(" "),
       })}
     >
-      Enter your conversations{" "}
+      {text}{" "}
       <ArrowUpRight
         data-icon="inline-end"
         className="transition-transform duration-300 ease-out group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5"
