@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { LogOut, Plus, Search, X } from "lucide-react";
+import { ConfirmLogoutDialog } from "@/components/chat/confirm-logout-dialog";
 import { ConversationRow } from "@/components/chat/conversation-row";
 import type { Conversation, User } from "@/lib/chat-api";
 
@@ -13,6 +14,7 @@ type Props = {
   open: boolean;
   onSelect: (id: string) => void;
   onClose: () => void;
+  onLogout: () => void;
 };
 
 export function ChatSidebar({
@@ -23,8 +25,10 @@ export function ChatSidebar({
   open,
   onSelect,
   onClose,
+  onLogout,
 }: Props) {
   const [query, setQuery] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const filtered = useMemo(
     () =>
       conversations.filter((c) =>
@@ -84,14 +88,26 @@ export function ChatSidebar({
           <div className="grid size-9 place-items-center rounded-full bg-accent font-semibold">
             {user.name.slice(0, 1)}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {connected ? "Connected account" : "Preview mode"}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">Connected</p>
           </div>
+          <button
+            onClick={() => setConfirmOpen(true)}
+            className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut className="size-4 text-destructive" />
+          </button>
         </div>
       </div>
+      {confirmOpen && (
+        <ConfirmLogoutDialog
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={onLogout}
+        />
+      )}
     </aside>
   );
 }

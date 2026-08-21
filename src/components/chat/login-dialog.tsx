@@ -41,7 +41,7 @@ export function LoginDialog({
               Open your chat space
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Use your account, or explore the preview without signing in.
+              Use your name and phone number to sign in.
             </p>
           </div>
           <Button
@@ -87,13 +87,13 @@ export function LoginDialog({
             {pending ? "Signing in…" : "Continue"}{" "}
             {!pending && <ArrowUpRight data-icon="inline-end" />}
           </Button>
-          <button
+          {/* <button
             type="button"
             className="text-sm text-muted-foreground underline underline-offset-4"
             onClick={onClose}
           >
             Cancel — explore the preview instead
-          </button>
+          </button> */}
         </form>
       </div>
     </div>

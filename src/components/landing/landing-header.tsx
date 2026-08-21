@@ -49,9 +49,6 @@ export function LandingHeader() {
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {/* <Link href="/chat" className={buttonVariants({ variant: "outline", size: "sm" })}>
-              Let's chat
-            </Link> */}
             <HeroCta text="Let's chat" />
           </div>
         </div>

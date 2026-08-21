@@ -5,7 +5,7 @@ const LABELS: Record<ConnectionState, string> = {
   demo: "Preview mode",
   connecting: "Connecting",
   live: "Live",
-  offline: "Offline",
+  offline: "offline",
 };
 
 export function ConnectionStatus({ status }: { status: ConnectionState }) {

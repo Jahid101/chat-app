@@ -2,23 +2,25 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
   Hash,
   Menu,
-  Sparkles,
+  MessagesSquare,
   Users,
 } from "lucide-react";
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
+import { ChatSkeleton } from "@/components/chat/chat-skeleton";
 import { ConnectionStatus } from "@/components/chat/connection-status";
-import { LoginDialog } from "@/components/chat/login-dialog";
 import { MessageComposer } from "@/components/chat/message-composer";
 import { MessageList } from "@/components/chat/message-list";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/use-chat";
 
 export function ChatView() {
+  const router = useRouter();
   const {
     token,
     user,
@@ -26,7 +28,7 @@ export function ChatView() {
     messages,
     connection,
     send,
-    login,
+    logout,
     markConversationRead,
   } = useChat();
 
@@ -34,11 +36,21 @@ export function ChatView() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState("");
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
+
+  // The token is resolved from storage during the first client render;
+  // this flag gates rendering so the prerendered HTML never leaks chat data.
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
-    if (!token) setLoginOpen(true);
+    setSessionChecked(true);
   }, []);
+
+  // No valid session → back to the landing page (which offers the login modal).
+  useEffect(() => {
+    if (sessionChecked && !token) router.replace("/");
+  }, [router, sessionChecked, token]);
+
+  if (!sessionChecked || !token) return <ChatSkeleton />;
 
   const active =
     conversations.find((item) => item.id === activeId) ?? conversations[0];
@@ -59,15 +71,16 @@ export function ChatView() {
     await send(active.id, text);
   }
 
-  async function handleLogin(name: string, phone: string) {
-    await login(name, phone);
-    setLoginOpen(false);
+  function handleLogout() {
+    logout();
+    router.replace("/");
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
       <header className="flex h-16 items-center justify-between border-b border-border px-4 md:px-8">
-        <Link
+        {/* <Link
           href="/"
           className="flex items-center gap-2 font-semibold tracking-tight"
         >
@@ -75,15 +88,29 @@ export function ChatView() {
             <Sparkles className="size-4" />
           </span>
           Chatty
+        </Link> */}
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-semibold tracking-tight group"
+        >
+          <span className="grid size-10 place-items-center rounded-xl bg-linear-to-t from-primary/20 to-primary/0">
+            <MessagesSquare className="size-5 group-hover:scale-103 duration-200" />
+          </span>
+          Chatty
         </Link>
+
         <div className="flex items-center gap-2">
           <ConnectionStatus status={connection} />
           <ThemeToggle />
-          <Link href="/" className={buttonVariants({ variant: "outline", size: "sm" })}>
+          {/* <Link
+            href="/"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
             Home
-          </Link>
+          </Link> */}
         </div>
       </header>
+
       <main className="mx-auto flex h-[calc(100vh-4rem)] max-w-[1440px] overflow-hidden">
         <ChatSidebar
           conversations={conversations}
@@ -93,6 +120,7 @@ export function ChatView() {
           open={mobileRailOpen}
           onSelect={selectConversation}
           onClose={() => setMobileRailOpen(false)}
+          onLogout={handleLogout}
         />
         <section className="flex min-w-0 flex-1 flex-col bg-background">
           <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-8">
@@ -120,14 +148,14 @@ export function ChatView() {
                   : "Usually replies in a few minutes"}
               </p>
             </div>
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="ml-auto"
               aria-label="Conversation details"
             >
               <ArrowUpRight />
-            </Button>
+            </Button> */}
           </div>
           {active ? (
             <>
@@ -149,9 +177,6 @@ export function ChatView() {
           )}
         </section>
       </main>
-      {loginOpen && (
-        <LoginDialog onClose={() => setLoginOpen(false)} onSubmit={handleLogin} />
-      )}
     </div>
   );
 }

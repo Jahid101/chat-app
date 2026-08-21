@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import {
+  ApiError,
   SOCKET_BASE,
   chatApi,
+  extractToken,
   normalizeConversation,
   normalizeMessage,
   normalizeUser,
@@ -13,15 +15,9 @@ import {
   type User,
 } from "@/lib/chat-api";
 import { demoConversations, demoMessages, demoUser } from "@/lib/demo-data";
+import { clearToken, readToken, writeToken } from "@/lib/auth-token";
 
 export type ConnectionState = "demo" | "connecting" | "live" | "offline";
-
-const TOKEN_KEY = "Chatty-token";
-
-function readStoredToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
-}
 
 async function fetchConversations(token: string): Promise<Conversation[]> {
   const raw = await chatApi.conversations(token);
@@ -30,15 +26,24 @@ async function fetchConversations(token: string): Promise<Conversation[]> {
 }
 
 export function useChat() {
-  const [token, setToken] = useState<string | null>(readStoredToken);
+  const [token, setToken] = useState<string | null>(readToken);
   const [user, setUser] = useState<User>(demoUser);
   const [conversations, setConversations] =
     useState<Conversation[]>(demoConversations);
   const [messages, setMessages] =
     useState<Record<string, Message[]>>(demoMessages);
   const [connection, setConnection] = useState<ConnectionState>(() =>
-    readStoredToken() ? "connecting" : "demo",
+    readToken() ? "connecting" : "demo",
   );
+
+  const invalidateSession = useCallback(() => {
+    clearToken();
+    setToken(null);
+    setUser(demoUser);
+    setConversations(demoConversations);
+    setMessages(demoMessages);
+    setConnection("demo");
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -50,10 +55,12 @@ export function useChat() {
       .then((raw) => {
         if (!cancelled) setUser(normalizeUser(raw));
       })
-      .catch(() => {
+      .catch((error) => {
         if (cancelled) return;
-        window.localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
+        if (error instanceof ApiError && error.status === 401) {
+          invalidateSession();
+          return;
+        }
         setConnection("offline");
       });
 
@@ -80,7 +87,13 @@ export function useChat() {
 
     socket.on("connect", () => setConnection("live"));
     socket.on("disconnect", () => setConnection("offline"));
-    socket.on("connect_error", () => setConnection("offline"));
+    socket.on("connect_error", (error) => {
+      setConnection("offline");
+      const message = String(error?.message ?? "");
+      if (/auth|token|unauthor|invalid|401/i.test(message)) {
+        invalidateSession();
+      }
+    });
 
     socket.on("message:new", (raw) => {
       const message = normalizeMessage(raw);
@@ -145,7 +158,10 @@ export function useChat() {
             m.id === optimistic.id ? sent : m,
           ),
         }));
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          invalidateSession();
+        }
         setMessages((prev) => ({
           ...prev,
           [conversationId]: (prev[conversationId] ?? []).map((m) =>
@@ -154,17 +170,21 @@ export function useChat() {
         }));
       }
     },
-    [token, user],
+    [invalidateSession, token, user],
   );
 
   const login = useCallback(async (name: string, phone: string) => {
     const raw = await chatApi.login(name, phone);
-    const nextToken = raw?.token ?? raw?.access_token ?? raw?.jwt;
+    const nextToken = extractToken(raw);
     if (!nextToken) throw new Error("No token returned");
-    window.localStorage.setItem(TOKEN_KEY, nextToken);
+    writeToken(nextToken);
     setUser(normalizeUser(raw?.user ?? raw));
     setToken(nextToken);
   }, []);
+
+  const logout = useCallback(() => {
+    invalidateSession();
+  }, [invalidateSession]);
 
   const markConversationRead = useCallback((id: string) => {
     setConversations((prev) =>
@@ -180,6 +200,7 @@ export function useChat() {
     connection,
     send,
     login,
+    logout,
     markConversationRead,
   };
 }

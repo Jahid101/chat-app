@@ -6,5 +6,9 @@ export const metadata: Metadata = {
 };
 
 export default function ChatPage() {
-  return <ChatView />;
+  return (
+    <div className="mx-auto max-w-[1920px]">
+      <ChatView />
+    </div>
+  );
 }
