@@ -3,7 +3,7 @@ import { ThemeProvider } from '@/components/theme/theme-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Taghyeer — conversations with room to breathe',
+  title: 'Chatty — conversations with room to breathe',
   description: 'A quieter, more thoughtful chat space for the people and ideas that matter.',
   generator: 'v0.app',
   icons: {
@@ -39,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className="antialiased">
         <ThemeProvider>{children}</ThemeProvider>
       </body>

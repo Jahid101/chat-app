@@ -13,7 +13,7 @@ export function LandingHeader() {
         <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground">
           <Sparkles className="size-4" />
         </span>
-        Taghyeer
+        Chatty
       </Link>
       <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
         <a href="#why" className="hover:text-foreground">

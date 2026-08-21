@@ -10,7 +10,7 @@ import {
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "taghyeer-theme";
+const STORAGE_KEY = "Chatty-theme";
 
 type ThemeContextValue = {
   theme: Theme;

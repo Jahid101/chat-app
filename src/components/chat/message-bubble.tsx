@@ -11,7 +11,9 @@ export function MessageBubble({
   showName: boolean;
 }) {
   return (
-    <div className={`flex flex-col ${own ? "items-end" : "items-start"}`}>
+    <div
+      className={`flex animate-in flex-col fade-in slide-in-from-bottom-1 duration-300 ${own ? "items-end" : "items-start"}`}
+    >
       {showName && !own && (
         <span className="mb-1 px-3 text-xs font-medium text-muted-foreground">
           {message.senderName}

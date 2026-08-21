@@ -16,7 +16,9 @@ export function ConnectionStatus({ status }: { status: ConnectionState }) {
       ) : status === "offline" ? (
         <WifiOff className="size-3.5" />
       ) : (
-        <span className="size-2 rounded-full bg-primary" />
+        <span
+          className={`size-2 rounded-full bg-primary ${status === "connecting" ? "animate-pulse" : ""}`}
+        />
       )}
       {LABELS[status]}
     </span>

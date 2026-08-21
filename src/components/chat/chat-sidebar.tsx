@@ -35,7 +35,7 @@ export function ChatSidebar({
 
   return (
     <aside
-      className={`${open ? "absolute inset-0 z-20 flex" : "hidden"} w-full shrink-0 flex-col border-r border-border bg-card md:relative md:flex md:w-80`}
+      className={`${open ? "absolute inset-0 z-20 flex animate-in slide-in-from-left-4 fade-in duration-300" : "hidden"} w-full shrink-0 flex-col border-r border-border bg-card md:relative md:flex md:w-80`}
     >
       <div className="flex items-center justify-between p-5">
         <div>

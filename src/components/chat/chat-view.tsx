@@ -74,7 +74,7 @@ export function ChatView() {
           <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground">
             <Sparkles className="size-4" />
           </span>
-          Taghyeer
+          Chatty
         </Link>
         <div className="flex items-center gap-2">
           <ConnectionStatus status={connection} />

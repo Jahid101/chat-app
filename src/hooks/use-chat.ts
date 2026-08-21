@@ -16,7 +16,7 @@ import { demoConversations, demoMessages, demoUser } from "@/lib/demo-data";
 
 export type ConnectionState = "demo" | "connecting" | "live" | "offline";
 
-const TOKEN_KEY = "taghyeer-token";
+const TOKEN_KEY = "Chatty-token";
 
 function readStoredToken(): string | null {
   if (typeof window === "undefined") return null;
