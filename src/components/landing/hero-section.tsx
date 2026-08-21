@@ -20,7 +20,7 @@ export function HeroSection() {
           the small details, and the moment a message finally lands.
         </p>
         <div className="mt-8 flex flex-col gap-3 slide-in-from-bottom-3 fade-in animate-in duration-700 delay-300 sm:flex-row">
-          <HeroCta />
+          <HeroCta className="px-5 py-6" />
         </div>
         <p className="mt-5 text-xs text-muted-foreground slide-in-from-bottom-3 fade-in animate-in duration-700 delay-300">
           No noisy feeds. No lost threads. Just the right people, in focus.
@@ -33,13 +33,14 @@ export function HeroSection() {
         <div className="absolute -inset-10 -z-10 rounded-full bg-accent/40 blur-3xl" />
 
         {/* Floating top */}
-        <div className="absolute -top-9 -right-5 animate-floatX rounded-2xl border border-border bg-card px-4 py-3 shadow-lg mr-2 sm:mr-0">
+        <div className="absolute -top-9 -right-5 animate-floatX rounded-2xl border border-border bg-card px-4 py-3 shadow-lg mr-2 sm:mr-0 bg-linear-to-tl from-primary/10 to-primary/0">
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Realtime, quietly
           </p>
           <p className="mt-1 text-sm font-semibold">Your messages arrive.</p>
         </div>
 
+        {/* Middle part */}
         <div className="rounded-[2rem] border border-border bg-card p-3 shadow-2xl shadow-primary/10">
           <div className="rounded-[1.5rem] border border-border bg-background">
             <div className="flex items-center gap-3 border-b border-border px-5 py-4">
@@ -83,7 +84,7 @@ export function HeroSection() {
         </div>
 
         {/* Floating bottom */}
-        <div className="absolute -bottom-9 -left-5 animate-floatY rounded-2xl border border-border bg-card px-4 py-3 shadow-lg ml-2 sm:ml-0">
+        <div className="absolute -bottom-9 -left-5 animate-floatY rounded-2xl border border-border bg-card px-4 py-3 shadow-lg ml-2 sm:ml-0 bg-linear-to-bl from-primary/10 to-primary/0">
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Chat. Connect. Stay close
           </p>

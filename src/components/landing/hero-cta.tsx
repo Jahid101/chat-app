@@ -10,8 +10,10 @@ function pulseHaptic() {
 
 export function HeroCta({
   text = "Enter your conversations",
+  className,
 }: {
   text?: string;
+  className?: string;
 }) {
   return (
     <Link
@@ -20,6 +22,7 @@ export function HeroCta({
       className={buttonVariants({
         size: "lg",
         className: [
+          className,
           "relative overflow-hidden",
           "motion-safe:animate-breathe",
           "duration-300 ease-out",

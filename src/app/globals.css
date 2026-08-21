@@ -163,8 +163,8 @@
 }
 
 @theme {
-  --animate-floatX: floatX 2.5s ease-in-out infinite;
-  --animate-floatY: floatY 2.5s ease-in-out infinite;
+  --animate-floatX: floatX 2s ease-in-out infinite;
+  --animate-floatY: floatY 2s ease-in-out infinite;
   --animate-breathe: cta-breathe 3.4s ease-in-out infinite;
 
   @keyframes floatX {
