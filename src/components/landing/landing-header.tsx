@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { MessagesSquare } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { HeroCta } from "./hero-cta";
 
 export function LandingHeader() {
