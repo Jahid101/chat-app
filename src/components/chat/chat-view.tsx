@@ -7,6 +7,7 @@ import { MessageComposer } from "@/components/chat/message-composer";
 import { MessageList } from "@/components/chat/message-list";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { conversationTitle } from "@/lib/chat-api";
 import { useChat } from "@/hooks/use-chat";
 import { Hash, Menu, MessagesSquare, Users } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +25,7 @@ export function ChatView() {
     initializing,
     send,
     logout,
+    startDirect,
     markConversationRead,
   } = useChat();
 
@@ -102,11 +104,13 @@ export function ChatView() {
           conversations={conversations}
           activeId={active?.id}
           user={user}
-          connected={Boolean(token)}
+          token={token}
+          connected={connection === "live"}
           open={mobileRailOpen}
           onSelect={selectConversation}
           onClose={() => setMobileRailOpen(false)}
           onLogout={handleLogout}
+          onStartDirect={startDirect}
         />
         <section className="flex min-w-0 flex-1 flex-col bg-background">
           <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-8">
@@ -127,7 +131,9 @@ export function ChatView() {
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="truncate font-semibold">{active?.name}</h2>
+              <h2 className="truncate font-semibold">
+                {active ? conversationTitle(active, user.id) : ""}
+              </h2>
               <p className="text-xs text-muted-foreground">
                 {active?.isGroup
                   ? "8 members · 3 online"

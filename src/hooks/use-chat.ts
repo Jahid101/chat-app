@@ -14,24 +14,25 @@ import {
   type Message,
   type User,
 } from "@/lib/chat-api";
-import { demoConversations, demoMessages, demoUser } from "@/lib/demo-data";
 import { clearToken, readToken, writeToken } from "@/lib/auth-token";
 
 export type ConnectionState = "demo" | "connecting" | "live" | "offline";
 
+const EMPTY_USER: User = { id: "", name: "" };
+
 async function fetchConversations(token: string): Promise<Conversation[]> {
   const raw = await chatApi.conversations(token);
-  const list = Array.isArray(raw) ? raw : (raw?.conversations ?? []);
+  const list = Array.isArray(raw)
+    ? raw
+    : (raw?.data ?? raw?.conversations ?? []);
   return list.map(normalizeConversation);
 }
 
 export function useChat() {
   const [token, setToken] = useState<string | null>(readToken);
-  const [user, setUser] = useState<User>(demoUser);
-  const [conversations, setConversations] =
-    useState<Conversation[]>(demoConversations);
-  const [messages, setMessages] =
-    useState<Record<string, Message[]>>(demoMessages);
+  const [user, setUser] = useState<User>(EMPTY_USER);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [connection, setConnection] = useState<ConnectionState>(() =>
     readToken() ? "connecting" : "demo",
   );
@@ -44,9 +45,9 @@ export function useChat() {
   const invalidateSession = useCallback(() => {
     clearToken();
     setToken(null);
-    setUser(demoUser);
-    setConversations(demoConversations);
-    setMessages(demoMessages);
+    setUser(EMPTY_USER);
+    setConversations([]);
+    setMessages({});
     setConnection("demo");
     setInitializing(false);
   }, []);
@@ -133,6 +134,20 @@ export function useChat() {
     };
   }, [token]);
 
+  const refreshConversations = useCallback(async () => {
+    if (!token) return [];
+    try {
+      const next = await fetchConversations(token);
+      setConversations(next);
+      return next;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        invalidateSession();
+      }
+      return [];
+    }
+  }, [invalidateSession, token]);
+
   const send = useCallback(
     async (conversationId: string, text: string) => {
       const optimistic: Message = {
@@ -150,17 +165,7 @@ export function useChat() {
         [conversationId]: [...(prev[conversationId] ?? []), optimistic],
       }));
 
-      if (!token) {
-        window.setTimeout(() => {
-          setMessages((prev) => ({
-            ...prev,
-            [conversationId]: (prev[conversationId] ?? []).map((m) =>
-              m.id === optimistic.id ? { ...m, pending: false } : m,
-            ),
-          }));
-        }, 650);
-        return;
-      }
+      if (!token) return;
 
       try {
         const sent = normalizeMessage(
@@ -185,6 +190,16 @@ export function useChat() {
       }
     },
     [invalidateSession, token, user],
+  );
+
+  const startDirect = useCallback(
+    async (otherUserId: string): Promise<string> => {
+      if (!token) throw new Error("You need to be signed in.");
+      const created = await chatApi.createConversation(token, otherUserId);
+      await refreshConversations();
+      return String(created?._id ?? created?.id ?? "");
+    },
+    [refreshConversations, token],
   );
 
   const login = useCallback(async (name: string, phone: string) => {
@@ -216,6 +231,8 @@ export function useChat() {
     send,
     login,
     logout,
+    startDirect,
+    refreshConversations,
     markConversationRead,
   };
 }
