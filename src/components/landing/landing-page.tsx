@@ -6,9 +6,9 @@ import { SiteFooter } from "@/components/landing/site-footer";
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen overflow-hidden bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <LandingHeader />
-      <main id="top">
+      <main id="top" className="overflow-x-clip">
         <HeroSection />
         <FeaturesSection />
         <PrinciplesSection />

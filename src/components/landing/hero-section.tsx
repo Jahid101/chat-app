@@ -22,7 +22,7 @@ export function HeroSection() {
         <div className="mt-8 flex flex-col gap-3 slide-in-from-bottom-3 fade-in animate-in duration-700 delay-300 sm:flex-row">
           <HeroCta />
         </div>
-        <p className="mt-5 text-xs text-muted-foreground fade-in animate-in duration-700 delay-500">
+        <p className="mt-5 text-xs text-muted-foreground slide-in-from-bottom-3 fade-in animate-in duration-700 delay-300">
           No noisy feeds. No lost threads. Just the right people, in focus.
         </p>
       </div>
