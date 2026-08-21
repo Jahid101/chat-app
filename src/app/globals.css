@@ -165,6 +165,7 @@
 @theme {
   --animate-floatX: floatX 2.5s ease-in-out infinite;
   --animate-floatY: floatY 2.5s ease-in-out infinite;
+  --animate-breathe: cta-breathe 3.4s ease-in-out infinite;
 
   @keyframes floatX {
     0%,
@@ -183,6 +184,20 @@
     }
     50% {
       transform: translateY(-8px);
+    }
+  }
+
+  @keyframes cta-breathe {
+    0%,
+    100% {
+      box-shadow:
+        0 6px 24px -12px color-mix(in oklab, var(--primary) 40%, transparent),
+        0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 10px 36px -10px color-mix(in oklab, var(--primary) 60%, transparent),
+        0 0 24px -6px color-mix(in oklab, var(--primary) 25%, transparent);
     }
   }
 }

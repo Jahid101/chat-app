@@ -1,6 +1,5 @@
-import { ArrowUpRight, ChevronLeft, Send } from "lucide-react";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Send } from "lucide-react";
+import { HeroCta } from "@/components/landing/hero-cta";
 
 export function HeroSection() {
   return (
@@ -21,9 +20,7 @@ export function HeroSection() {
           the small details, and the moment a message finally lands.
         </p>
         <div className="mt-8 flex flex-col gap-3 slide-in-from-bottom-3 fade-in animate-in duration-700 delay-300 sm:flex-row">
-          <Link href="/chat" className={buttonVariants({ size: "lg" })}>
-            Enter your conversations <ArrowUpRight data-icon="inline-end" />
-          </Link>
+          <HeroCta />
         </div>
         <p className="mt-5 text-xs text-muted-foreground fade-in animate-in duration-700 delay-500">
           No noisy feeds. No lost threads. Just the right people, in focus.
@@ -36,7 +33,7 @@ export function HeroSection() {
         <div className="absolute -inset-10 -z-10 rounded-full bg-accent/40 blur-3xl" />
 
         {/* Floating top */}
-        <div className="absolute -top-9 -right-5 animate-floatX rounded-2xl border border-border bg-card px-4 py-3 shadow-lg">
+        <div className="absolute -top-9 -right-5 animate-floatX rounded-2xl border border-border bg-card px-4 py-3 shadow-lg mr-2 sm:mr-0">
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Realtime, quietly
           </p>
@@ -86,7 +83,7 @@ export function HeroSection() {
         </div>
 
         {/* Floating bottom */}
-        <div className="absolute -bottom-9 -left-5 animate-floatY rounded-2xl border border-border bg-card px-4 py-3 shadow-lg">
+        <div className="absolute -bottom-9 -left-5 animate-floatY rounded-2xl border border-border bg-card px-4 py-3 shadow-lg ml-2 sm:ml-0">
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Chat. Connect. Stay close
           </p>
