@@ -1,5 +1,5 @@
-export const API_BASE = 'https://frontend-task-chatapp.onrender.com/api'
-export const SOCKET_BASE = 'https://frontend-task-chatapp.onrender.com'
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL + '/api'
+export const SOCKET_BASE = process.env.NEXT_PUBLIC_WS_URL
 
 export type User = { _id?: string; id: string; name: string; phone?: string; avatar?: string; online?: boolean }
 export type Conversation = { _id?: string; id: string; name: string; isGroup?: boolean; participant?: User; participants?: User[]; admins?: string[]; createdBy?: string; lastMessage?: Message; unread?: number }

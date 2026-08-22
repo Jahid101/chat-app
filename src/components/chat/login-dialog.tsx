@@ -87,13 +87,6 @@ export function LoginDialog({
             {pending ? "Signing in…" : "Continue"}{" "}
             {!pending && <ArrowUpRight data-icon="inline-end" />}
           </Button>
-          {/* <button
-            type="button"
-            className="text-sm text-muted-foreground underline underline-offset-4"
-            onClick={onClose}
-          >
-            Cancel — explore the preview instead
-          </button> */}
         </form>
       </div>
     </div>

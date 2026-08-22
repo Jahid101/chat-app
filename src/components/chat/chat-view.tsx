@@ -2,7 +2,6 @@
 
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
 import { ChatSkeleton } from "@/components/chat/chat-skeleton";
-import { ConnectionStatus } from "@/components/chat/connection-status";
 import { ConversationDetails } from "@/components/chat/conversation-details";
 import { MessageComposer } from "@/components/chat/message-composer";
 import { MessageList } from "@/components/chat/message-list";
@@ -140,14 +139,7 @@ export function ChatView() {
         </Link>
 
         <div className="flex items-center gap-3">
-          {/* <ConnectionStatus status={connection} /> */}
           <ThemeToggle />
-          {/* <Link
-            href="/"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Home
-          </Link> */}
         </div>
       </header>
 
