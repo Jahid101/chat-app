@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { conversationTitle } from "@/lib/chat-api";
 import { useChat } from "@/hooks/use-chat";
-import { unlockAudio } from "@/lib/sound";
+import { playMessageChime, unlockAudio } from "@/lib/sound";
 import { ArrowUpRight, Hash, Menu, MessagesSquare, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -75,11 +75,27 @@ export function ChatView() {
     setViewingConversation(activeConversationId);
   }, [activeConversationId, setViewingConversation]);
 
-  // Browsers block audio until a gesture — unlock the chime on first click.
+  // TEMP-DEBUG: remove after diagnosing chime regression —
+  // type __chime() in the browser console to test audio in isolation.
   useEffect(() => {
+    (window as unknown as { __chime?: () => void }).__chime = () => {
+      unlockAudio();
+      window.setTimeout(playMessageChime, 60);
+    };
+  }, []);
+
+  // Browsers block audio until a gesture — unlock the chime on first click,
+  // and wake the (suspended) context again whenever the tab becomes visible.
+  useEffect(() => {
+    const rewake = () => {
+      if (document.visibilityState === "visible") unlockAudio();
+    };
     window.addEventListener("pointerdown", unlockAudio, { once: true });
-    return () =>
+    document.addEventListener("visibilitychange", rewake);
+    return () => {
       window.removeEventListener("pointerdown", unlockAudio);
+      document.removeEventListener("visibilitychange", rewake);
+    };
   }, []);
 
   if (!sessionChecked || !token || initializing) return <ChatSkeleton />;

@@ -25,8 +25,18 @@ export function unlockAudio() {
 // Soft two-tone "ding" synthesized on the fly — no audio assets needed.
 export function playMessageChime() {
   const audio = ensureContext();
-  if (!audio || audio.state === "suspended") return;
+  if (!audio) return;
 
+  // Browsers suspend the context after the tab has been backgrounded;
+  // resume() is async, so wait for it instead of checking state and bailing.
+  if (audio.state === "suspended") {
+    void audio.resume().then(() => scheduleChime(audio)).catch(() => undefined);
+    return;
+  }
+  scheduleChime(audio);
+}
+
+function scheduleChime(audio: AudioContext) {
   const now = audio.currentTime;
   const master = audio.createGain();
   master.gain.value = 0.14;
