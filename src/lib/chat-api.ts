@@ -20,8 +20,8 @@ export function normalizeUser(raw: any): User {
 export function normalizeMessage(raw: any): Message {
     return {
         id: String(pick(raw, ['id', '_id', 'messageId'], crypto.randomUUID())),
-        conversationId: pick(raw, ['conversationId', 'conversation_id', 'chatId']),
-        senderId: pick(raw, ['senderId', 'sender_id', 'userId']),
+        conversationId: pick(raw, ['conversationId', 'conversation', 'conversation_id', 'chatId']),
+        senderId: pick(raw, ['senderId', 'sender', 'sender_id', 'userId']),
         senderName: pick(raw, ['senderName', 'sender_name', 'name']),
         text: pick(raw, ['text', 'content', 'message'], ''),
         createdAt: pick(raw, ['createdAt', 'created_at', 'timestamp'], new Date().toISOString())

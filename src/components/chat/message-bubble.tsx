@@ -4,19 +4,21 @@ import type { Message } from "@/lib/chat-api";
 export function MessageBubble({
   message,
   own,
-  showName,
+  showName = false,
+  senderName,
 }: {
   message: Message;
   own: boolean;
-  showName: boolean;
+  showName?: boolean;
+  senderName?: string;
 }) {
   return (
     <div
       className={`flex animate-in flex-col fade-in slide-in-from-bottom-1 duration-300 ${own ? "items-end" : "items-start"}`}
     >
-      {showName && !own && (
+      {showName && !own && senderName && (
         <span className="mb-1 px-3 text-xs font-medium text-muted-foreground">
-          {message.senderName}
+          {senderName}
         </span>
       )}
       <div

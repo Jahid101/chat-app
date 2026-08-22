@@ -26,6 +26,8 @@ export function ChatView() {
     send,
     logout,
     startDirect,
+    loadMessages,
+    threadLoading,
     markConversationRead,
   } = useChat();
 
@@ -47,10 +49,15 @@ export function ChatView() {
     if (sessionChecked && !token) router.replace("/");
   }, [router, sessionChecked, token]);
 
+  // Fetch the history whenever the selected conversation changes.
+  // Lives above the auth gate: hooks must run unconditionally every render.
+  useEffect(() => {
+    if (activeId) loadMessages(activeId);
+  }, [activeId, loadMessages]);
+
   if (!sessionChecked || !token || initializing) return <ChatSkeleton />;
 
-  const active =
-    conversations.find((item) => item.id === activeId) ?? conversations[0];
+  const active = conversations.find((item) => item.id === activeId) ?? null;
   const activeMessages = active ? (messages[active.id] ?? []) : [];
 
   function selectConversation(id: string) {
@@ -132,29 +139,24 @@ export function ChatView() {
             </div>
             <div className="min-w-0">
               <h2 className="truncate font-semibold">
-                {active ? conversationTitle(active, user.id) : ""}
+                {active ? conversationTitle(active, user.id) : "Your conversations"}
               </h2>
               <p className="text-xs text-muted-foreground">
-                {active?.isGroup
-                  ? "8 members · 3 online"
-                  : "Usually replies in a few minutes"}
+                {active
+                  ? active.isGroup
+                    ? `${active.participants?.length ?? 0} members`
+                    : "Direct conversation"
+                  : "Pick a chat from your circles to start reading"}
               </p>
             </div>
-            {/* <Button
-              variant="ghost"
-              size="icon"
-              className="ml-auto"
-              aria-label="Conversation details"
-            >
-              <ArrowUpRight />
-            </Button> */}
           </div>
           {active ? (
             <>
               <MessageList
-                conversationId={active.id}
+                conversation={active}
                 messages={activeMessages}
                 user={user}
+                loading={threadLoading}
               />
               <MessageComposer
                 value={draft}
@@ -163,8 +165,17 @@ export function ChatView() {
               />
             </>
           ) : (
-            <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
-              No conversations yet.
+            <div className="grid flex-1 place-items-center px-6 text-center">
+              <div>
+                <span className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-accent">
+                  <MessagesSquare className="size-7 text-muted-foreground" />
+                </span>
+                <p className="font-medium">Nothing selected yet</p>
+                <p className="mt-1 max-w-[36ch] text-sm leading-6 text-muted-foreground">
+                  Choose a conversation from your circles — or start a new one
+                  with the New chat button.
+                </p>
+              </div>
             </div>
           )}
         </section>

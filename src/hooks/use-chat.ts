@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import {
   ApiError,
@@ -148,6 +148,43 @@ export function useChat() {
     }
   }, [invalidateSession, token]);
 
+  // Conversation history ------------------------------------------------------
+  const [threadLoading, setThreadLoading] = useState(false);
+  const threadRequestRef = useRef(0);
+
+  const loadMessages = useCallback(
+    async (conversationId: string) => {
+      if (!token || !conversationId) return;
+      const request = ++threadRequestRef.current;
+      setThreadLoading(true);
+      try {
+        const raw = await chatApi.messages(token, conversationId);
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.messages)
+            ? raw.messages
+            : [];
+        if (request !== threadRequestRef.current) return;
+        setMessages((prev) => ({
+          ...prev,
+          [conversationId]: list.map(normalizeMessage),
+        }));
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          invalidateSession();
+          return;
+        }
+        if (request === threadRequestRef.current) {
+          setConnection("offline");
+          setMessages((prev) => ({ ...prev, [conversationId]: prev[conversationId] ?? [] }));
+        }
+      } finally {
+        if (request === threadRequestRef.current) setThreadLoading(false);
+      }
+    },
+    [invalidateSession, token],
+  );
+
   const send = useCallback(
     async (conversationId: string, text: string) => {
       const optimistic: Message = {
@@ -228,11 +265,13 @@ export function useChat() {
     messages,
     connection,
     initializing,
+    threadLoading,
     send,
     login,
     logout,
     startDirect,
     refreshConversations,
+    loadMessages,
     markConversationRead,
   };
 }
