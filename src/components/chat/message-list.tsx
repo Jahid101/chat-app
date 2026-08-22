@@ -32,6 +32,10 @@ export function MessageList({
     return map;
   }, [conversation]);
 
+  // Skeleton only when there is nothing to show yet; cached threads stay
+  // visible (stale-while-revalidate) while their refresh runs in background.
+  const showSkeleton = loading && messages.length === 0;
+
   useEffect(() => {
     isNearLatestRef.current = true;
     const scroller = scrollerRef.current;
@@ -65,7 +69,7 @@ export function MessageList({
       className="flex-1 overflow-y-auto px-4 py-6 md:px-12"
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-5">
-        {loading ? (
+        {showSkeleton ? (
           <>
             <p className="sr-only" role="status">
               Loading messages…
@@ -100,7 +104,8 @@ export function MessageList({
           </div>
         ) : null}
 
-        {messages.map((message, index) => {
+        {!showSkeleton &&
+          messages.map((message, index) => {
           const previous = messages[index - 1];
           return (
             <MessageBubble

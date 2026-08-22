@@ -14,6 +14,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const ACTIVE_CONVERSATION_KEY = "Chatty-active-conversation";
+
 export function ChatView() {
   const router = useRouter();
   const {
@@ -31,7 +33,10 @@ export function ChatView() {
     markConversationRead,
   } = useChat();
 
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(ACTIVE_CONVERSATION_KEY);
+  });
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState("");
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
@@ -63,6 +68,7 @@ export function ChatView() {
   function selectConversation(id: string) {
     if (active) setDrafts((prev) => ({ ...prev, [active.id]: draft }));
     setActiveId(id);
+    window.localStorage.setItem(ACTIVE_CONVERSATION_KEY, id);
     setDraft(drafts[id] ?? "");
     setMobileRailOpen(false);
     markConversationRead(id);
@@ -77,6 +83,7 @@ export function ChatView() {
 
   function handleLogout() {
     logout();
+    window.localStorage.removeItem(ACTIVE_CONVERSATION_KEY);
     router.replace("/");
   }
 

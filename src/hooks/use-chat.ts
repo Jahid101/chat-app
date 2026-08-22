@@ -92,6 +92,26 @@ export function useChat() {
     };
   }, [invalidateSession, token]);
 
+  const refreshConversations = useCallback(async () => {
+    if (!token) return [];
+    try {
+      const next = await fetchConversations(token);
+      setConversations(next);
+      return next;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        invalidateSession();
+      }
+      return [];
+    }
+  }, [invalidateSession, token]);
+
+  // Latest user id without re-subscribing the socket on profile loads.
+  const currentUserIdRef = useRef(user.id);
+  useEffect(() => {
+    currentUserIdRef.current = user.id;
+  }, [user.id]);
+
   useEffect(() => {
     if (!token) return;
 
@@ -121,6 +141,11 @@ export function useChat() {
           message,
         ],
       }));
+      // Someone else messaged us → refresh the sidebar so its preview,
+      // unread badge, and ordering reflect it. Own sends refresh separately.
+      if (!message.senderId || message.senderId !== currentUserIdRef.current) {
+        void refreshConversations();
+      }
     });
 
     socket.on("conversation:updated", () => {
@@ -132,21 +157,7 @@ export function useChat() {
     return () => {
       socket.disconnect();
     };
-  }, [token]);
-
-  const refreshConversations = useCallback(async () => {
-    if (!token) return [];
-    try {
-      const next = await fetchConversations(token);
-      setConversations(next);
-      return next;
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        invalidateSession();
-      }
-      return [];
-    }
-  }, [invalidateSession, token]);
+  }, [currentUserIdRef, refreshConversations, token]);
 
   // Conversation history ------------------------------------------------------
   const [threadLoading, setThreadLoading] = useState(false);
@@ -165,9 +176,17 @@ export function useChat() {
             ? raw.messages
             : [];
         if (request !== threadRequestRef.current) return;
+        // The API returns newest-first; normalize to oldest-first so the
+        // thread reads top-to-bottom and new messages land at the bottom.
+        const ordered = list
+          .map(normalizeMessage)
+          .sort(
+            (a: Message, b: Message) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
         setMessages((prev) => ({
           ...prev,
-          [conversationId]: list.map(normalizeMessage),
+          [conversationId]: ordered,
         }));
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
@@ -214,6 +233,8 @@ export function useChat() {
             m.id === optimistic.id ? sent : m,
           ),
         }));
+        // Keep the sidebar (last message, ordering) in sync with what was sent.
+        void refreshConversations();
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           invalidateSession();
@@ -226,7 +247,7 @@ export function useChat() {
         }));
       }
     },
-    [invalidateSession, token, user],
+    [invalidateSession, refreshConversations, token, user],
   );
 
   const startDirect = useCallback(
