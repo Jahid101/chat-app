@@ -161,3 +161,59 @@
     @apply bg-background text-foreground;
   }
 }
+
+@theme {
+  --animate-floatX: floatX 2s ease-in-out infinite;
+  --animate-floatY: floatY 2s ease-in-out infinite;
+  --animate-breathe: cta-breathe 3.4s ease-in-out infinite;
+
+  @keyframes floatX {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-8px);
+    }
+  }
+
+  @keyframes floatY {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes cta-breathe {
+    0%,
+    100% {
+      box-shadow:
+        0 6px 24px -12px color-mix(in oklab, var(--primary) 40%, transparent),
+        0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 10px 36px -10px color-mix(in oklab, var(--primary) 60%, transparent),
+        0 0 24px -6px color-mix(in oklab, var(--primary) 25%, transparent);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
