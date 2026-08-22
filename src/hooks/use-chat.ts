@@ -15,6 +15,7 @@ import {
   type User,
 } from "@/lib/chat-api";
 import { clearToken, readToken, writeToken } from "@/lib/auth-token";
+import { playMessageChime } from "@/lib/sound";
 
 export type ConnectionState = "demo" | "connecting" | "live" | "offline";
 
@@ -112,6 +113,24 @@ export function useChat() {
     currentUserIdRef.current = user.id;
   }, [user.id]);
 
+  // Which conversation the user is currently looking at (set by the view),
+  // so we know when an incoming message deserves a badge + chime.
+  const viewingIdRef = useRef<string | null>(null);
+  const setViewingConversation = useCallback((id: string | null) => {
+    viewingIdRef.current = id;
+  }, []);
+
+  // Locally-tracked unread counts — the API has no seen/delivered state,
+  // so badges are ours: incremented on background messages, zeroed on open.
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  const markConversationRead = useCallback((id: string) => {
+    setUnreadCounts((prev) => (prev[id] ? { ...prev, [id]: 0 } : prev));
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)),
+    );
+  }, []);
+
   useEffect(() => {
     if (!token) return;
 
@@ -145,6 +164,14 @@ export function useChat() {
       // unread badge, and ordering reflect it. Own sends refresh separately.
       if (!message.senderId || message.senderId !== currentUserIdRef.current) {
         void refreshConversations();
+        // Not looking at that thread? Badge it and chime softly.
+        if (message.senderId && conversationId !== viewingIdRef.current) {
+          setUnreadCounts((prev) => ({
+            ...prev,
+            [conversationId]: (prev[conversationId] ?? 0) + 1,
+          }));
+          playMessageChime();
+        }
       }
     });
 
@@ -273,12 +300,6 @@ export function useChat() {
     invalidateSession();
   }, [invalidateSession]);
 
-  const markConversationRead = useCallback((id: string) => {
-    setConversations((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)),
-    );
-  }, []);
-
   return {
     token,
     user,
@@ -287,6 +308,7 @@ export function useChat() {
     connection,
     initializing,
     threadLoading,
+    unreadCounts,
     send,
     login,
     logout,
@@ -294,5 +316,6 @@ export function useChat() {
     refreshConversations,
     loadMessages,
     markConversationRead,
+    setViewingConversation,
   };
 }

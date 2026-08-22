@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { conversationTitle } from "@/lib/chat-api";
 import { useChat } from "@/hooks/use-chat";
+import { unlockAudio } from "@/lib/sound";
 import { Hash, Menu, MessagesSquare, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,6 +32,8 @@ export function ChatView() {
     loadMessages,
     threadLoading,
     markConversationRead,
+    setViewingConversation,
+    unreadCounts,
   } = useChat();
 
   const [activeId, setActiveId] = useState<string | null>(() => {
@@ -59,6 +62,19 @@ export function ChatView() {
   useEffect(() => {
     if (activeId) loadMessages(activeId);
   }, [activeId, loadMessages]);
+
+  // Tell the hook which thread is on screen (unread badges depend on it).
+  const activeConversationId = activeId;
+  useEffect(() => {
+    setViewingConversation(activeConversationId);
+  }, [activeConversationId, setViewingConversation]);
+
+  // Browsers block audio until a gesture — unlock the chime on first click.
+  useEffect(() => {
+    window.addEventListener("pointerdown", unlockAudio, { once: true });
+    return () =>
+      window.removeEventListener("pointerdown", unlockAudio);
+  }, []);
 
   if (!sessionChecked || !token || initializing) return <ChatSkeleton />;
 
@@ -120,6 +136,7 @@ export function ChatView() {
           user={user}
           token={token}
           connected={connection === "live"}
+          unreadCounts={unreadCounts}
           open={mobileRailOpen}
           onSelect={selectConversation}
           onClose={() => setMobileRailOpen(false)}

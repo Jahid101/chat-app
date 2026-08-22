@@ -14,6 +14,7 @@ type Props = {
   user: User;
   token: string | null;
   connected: boolean;
+  unreadCounts: Record<string, number>;
   open: boolean;
   onSelect: (id: string) => void;
   onClose: () => void;
@@ -27,6 +28,7 @@ export function ChatSidebar({
   user,
   token,
   connected,
+  unreadCounts,
   open,
   onSelect,
   onClose,
@@ -38,10 +40,15 @@ export function ChatSidebar({
   const [startOpen, setStartOpen] = useState(false);
   const filtered = useMemo(
     () =>
-      conversations.filter((c) =>
-        conversationTitle(c, user.id).toLowerCase().includes(query.toLowerCase()),
-      ),
-    [conversations, query, user.id],
+      conversations
+        // Local unread (tracked in-app) wins over whatever the API claims.
+        .map((c) => ({ ...c, unread: unreadCounts[c.id] ?? c.unread ?? 0 }))
+        .filter((c) =>
+          conversationTitle(c, user.id)
+            .toLowerCase()
+            .includes(query.toLowerCase()),
+        ),
+    [conversations, query, unreadCounts, user.id],
   );
 
   return (
