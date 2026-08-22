@@ -287,6 +287,64 @@ export function useChat() {
     [refreshConversations, token],
   );
 
+  // Shared plumbing for every group mutation: run the API call, re-sync the
+  // conversation list (the backend returns the updated conversation, but a
+  // full refresh also fixes ordering/previews), and treat 401 as a dead
+  // session. Errors propagate so the UI can show them inline.
+  const mutateGroup = useCallback(
+    async <T,>(action: (t: string) => Promise<T>): Promise<T> => {
+      if (!token) throw new Error("You need to be signed in.");
+      try {
+        const result = await action(token);
+        await refreshConversations();
+        return result;
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) invalidateSession();
+        throw error;
+      }
+    },
+    [invalidateSession, refreshConversations, token],
+  );
+
+  const startGroup = useCallback(
+    async (name: string, participantIds: string[]): Promise<string> => {
+      const created = await mutateGroup((t) =>
+        chatApi.createGroup(t, name.trim(), participantIds),
+      );
+      return String(created?._id ?? created?.id ?? "");
+    },
+    [mutateGroup],
+  );
+
+  const renameGroup = useCallback(
+    async (id: string, name: string) => {
+      await mutateGroup((t) => chatApi.renameGroup(t, id, name.trim()));
+    },
+    [mutateGroup],
+  );
+
+  const addGroupMembers = useCallback(
+    async (id: string, userIds: string[]) => {
+      await mutateGroup((t) => chatApi.addGroupParticipants(t, id, userIds));
+    },
+    [mutateGroup],
+  );
+
+  // Passing your own id is how you leave the group — same endpoint.
+  const removeGroupMember = useCallback(
+    async (id: string, userId: string) => {
+      await mutateGroup((t) => chatApi.removeGroupParticipant(t, id, userId));
+    },
+    [mutateGroup],
+  );
+
+  const promoteGroupAdmin = useCallback(
+    async (id: string, userId: string) => {
+      await mutateGroup((t) => chatApi.promoteGroupAdmin(t, id, userId));
+    },
+    [mutateGroup],
+  );
+
   const login = useCallback(async (name: string, phone: string) => {
     const raw = await chatApi.login(name, phone);
     const nextToken = extractToken(raw);
@@ -313,6 +371,11 @@ export function useChat() {
     login,
     logout,
     startDirect,
+    startGroup,
+    renameGroup,
+    addGroupMembers,
+    removeGroupMember,
+    promoteGroupAdmin,
     refreshConversations,
     loadMessages,
     markConversationRead,

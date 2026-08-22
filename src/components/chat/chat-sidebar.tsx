@@ -20,6 +20,7 @@ type Props = {
   onClose: () => void;
   onLogout: () => void;
   onStartDirect: (otherUserId: string) => Promise<string>;
+  onStartGroup: (name: string, participantIds: string[]) => Promise<string>;
 };
 
 export function ChatSidebar({
@@ -34,10 +35,11 @@ export function ChatSidebar({
   onClose,
   onLogout,
   onStartDirect,
+  onStartGroup,
 }: Props) {
   const [query, setQuery] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [startOpen, setStartOpen] = useState(false);
+  const [startMode, setStartMode] = useState<"direct" | "group" | null>(null);
   const filtered = useMemo(
     () =>
       conversations
@@ -76,7 +78,7 @@ export function ChatSidebar({
       <div className="flex w-full gap-2 px-4 pb-4">
         <Button
           size="sm"
-          onClick={() => setStartOpen(true)}
+          onClick={() => setStartMode("direct")}
           disabled={!token}
           title={token ? "Start a direct conversation" : "Sign in first"}
           className="flex-1 cursor-pointer"
@@ -87,9 +89,10 @@ export function ChatSidebar({
         <Button
           size="sm"
           variant="outline"
-          disabled
-          title="Group chats are on their way"
-          className="flex-1 cursor-not-allowed"
+          onClick={() => setStartMode("group")}
+          disabled={!token}
+          title={token ? "Create a group conversation" : "Sign in first"}
+          className="flex-1 cursor-pointer"
         >
           <UsersRound data-icon="inline-start" />
           New group
@@ -159,14 +162,22 @@ export function ChatSidebar({
           onConfirm={onLogout}
         />
       )}
-      {startOpen && token && (
+      {startMode && token && (
         <StartChatDialog
+          key={startMode}
           token={token}
           selfId={user.id}
-          onClose={() => setStartOpen(false)}
-          onStart={async (otherUserId) => {
+          initialMode={startMode}
+          onClose={() => setStartMode(null)}
+          onStartDirect={async (otherUserId) => {
             const conversationId = await onStartDirect(otherUserId);
-            setStartOpen(false);
+            setStartMode(null);
+            onSelect(conversationId);
+            return conversationId;
+          }}
+          onStartGroup={async (name, participantIds) => {
+            const conversationId = await onStartGroup(name, participantIds);
+            setStartMode(null);
             onSelect(conversationId);
             return conversationId;
           }}

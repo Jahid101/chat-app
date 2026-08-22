@@ -17,7 +17,7 @@ export function MessageBubble({
       className={`flex animate-in flex-col fade-in slide-in-from-bottom-1 duration-300 ${own ? "items-end" : "items-start"}`}
     >
       {showName && !own && senderName && (
-        <span className="mb-1 px-3 text-xs font-medium text-muted-foreground">
+        <span className="mb-1 px-3 text-xs font-semibold text-muted-foreground">
           {senderName}
         </span>
       )}
