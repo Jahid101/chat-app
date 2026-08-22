@@ -60,8 +60,6 @@ export function MessageList({
   }
 
 
-  console.log('messages ==>', messages.reverse())
-
   return (
     <div
       ref={scrollerRef}

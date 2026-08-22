@@ -2,7 +2,7 @@
 
 import { ChatSidebar } from "@/components/chat/chat-sidebar";
 import { ChatSkeleton } from "@/components/chat/chat-skeleton";
-import { ConnectionStatus } from "@/components/chat/connection-status";
+import { ConversationDetails } from "@/components/chat/conversation-details";
 import { MessageComposer } from "@/components/chat/message-composer";
 import { MessageList } from "@/components/chat/message-list";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { conversationTitle } from "@/lib/chat-api";
 import { useChat } from "@/hooks/use-chat";
 import { unlockAudio } from "@/lib/sound";
-import { Hash, Menu, MessagesSquare, Users } from "lucide-react";
+import { ArrowUpRight, Hash, Menu, MessagesSquare, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -29,6 +29,11 @@ export function ChatView() {
     send,
     logout,
     startDirect,
+    startGroup,
+    renameGroup,
+    addGroupMembers,
+    removeGroupMember,
+    promoteGroupAdmin,
     loadMessages,
     threadLoading,
     markConversationRead,
@@ -43,6 +48,7 @@ export function ChatView() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState("");
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   // The token is resolved from storage during the first client render;
   // this flag gates rendering so the prerendered HTML never leaks chat data.
@@ -81,15 +87,6 @@ export function ChatView() {
   const active = conversations.find((item) => item.id === activeId) ?? null;
   const activeMessages = active ? (messages[active.id] ?? []) : [];
 
-  function selectConversation(id: string) {
-    if (active) setDrafts((prev) => ({ ...prev, [active.id]: draft }));
-    setActiveId(id);
-    window.localStorage.setItem(ACTIVE_CONVERSATION_KEY, id);
-    setDraft(drafts[id] ?? "");
-    setMobileRailOpen(false);
-    markConversationRead(id);
-  }
-
   async function handleSend() {
     const text = draft.trim();
     if (!text || !active) return;
@@ -103,10 +100,34 @@ export function ChatView() {
     router.replace("/");
   }
 
+  // Leaving a group removes it from the list — if it was open, close the
+  // details panel and drop the selection so the empty state shows instead
+  // of a ghost thread.
+  async function handleRemoveMember(id: string, memberId: string) {
+    await removeGroupMember(id, memberId);
+    if (memberId === user.id) {
+      setDetailsOpen(false);
+      if (activeId === id) {
+        setActiveId(null);
+        window.localStorage.removeItem(ACTIVE_CONVERSATION_KEY);
+      }
+    }
+  }
+
+  function selectConversation(id: string) {
+    if (active && active.id !== id) setDrafts((prev) => ({ ...prev, [active.id]: draft }));
+    setActiveId(id);
+    window.localStorage.setItem(ACTIVE_CONVERSATION_KEY, id);
+    setDraft(drafts[id] ?? "");
+    setMobileRailOpen(false);
+    setDetailsOpen(false);
+    markConversationRead(id);
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="flex h-19 items-center justify-between border-b border-border">
+      <header className="flex h-19 items-center justify-between border-b border-border px-4 min-[1500px]:px-0">
         <Link
           href="/"
           className="flex items-center gap-2 font-semibold tracking-tight group"
@@ -118,14 +139,7 @@ export function ChatView() {
         </Link>
 
         <div className="flex items-center gap-3">
-          <ConnectionStatus status={connection} />
           <ThemeToggle />
-          {/* <Link
-            href="/"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Home
-          </Link> */}
         </div>
       </header>
 
@@ -142,6 +156,7 @@ export function ChatView() {
           onClose={() => setMobileRailOpen(false)}
           onLogout={handleLogout}
           onStartDirect={startDirect}
+          onStartGroup={startGroup}
         />
         <section className="flex min-w-0 flex-1 flex-col bg-background">
           <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-8">
@@ -161,7 +176,7 @@ export function ChatView() {
                 <Hash className="size-5" />
               )}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h2 className="truncate font-semibold">
                 {active ? conversationTitle(active, user.id) : "Your conversations"}
               </h2>
@@ -173,6 +188,19 @@ export function ChatView() {
                   : "Pick a chat from your circles to start reading"}
               </p>
             </div>
+            {active && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDetailsOpen(true)}
+                aria-label={
+                  active.isGroup ? "Open group info" : "Open contact info"
+                }
+                title={active.isGroup ? "Group info" : "Contact info"}
+              >
+                <ArrowUpRight />
+              </Button>
+            )}
           </div>
           {active ? (
             <>
@@ -204,6 +232,19 @@ export function ChatView() {
           )}
         </section>
       </main>
+
+      {detailsOpen && active && (
+        <ConversationDetails
+          conversation={active}
+          user={user}
+          token={token}
+          onClose={() => setDetailsOpen(false)}
+          onRename={renameGroup}
+          onAddMembers={addGroupMembers}
+          onRemoveMember={handleRemoveMember}
+          onPromote={promoteGroupAdmin}
+        />
+      )}
 
       {/* Footer */}
       <footer className="border-t border-border px-5 py-2 md:px-10">
