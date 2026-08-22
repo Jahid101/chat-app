@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/landing/hero-section";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { PrinciplesSection } from "@/components/landing/principles-section";
 import { SiteFooter } from "@/components/landing/site-footer";
+import { TickerBand } from "@/components/landing/ticker-band";
 
 export function LandingPage() {
   return (
@@ -18,6 +19,7 @@ export function LandingPage() {
           <div className="absolute top-[300px] -right-32 size-[340px] rounded-full bg-accent blur-[100px]" />
         </div>
         <HeroSection />
+        <TickerBand />
         <FeaturesSection />
         <PrinciplesSection />
         <CtaSection />

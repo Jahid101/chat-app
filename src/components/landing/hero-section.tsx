@@ -11,7 +11,7 @@ export function HeroSection() {
         </p>
         <h1 className="max-w-3xl text-balance text-5xl font-semibold tracking-[-0.06em] slide-in-from-bottom-3 fade-in animate-in duration-700 delay-100 md:text-7xl">
           Talk less like a tool.{" "}
-          <span className="text-muted-foreground">
+          <span className="animate-shimmer bg-[linear-gradient(90deg,var(--muted-foreground),var(--foreground),var(--muted-foreground))] bg-clip-text text-transparent [background-size:200%_100%]">
             Make more room for people.
           </span>
         </h1>

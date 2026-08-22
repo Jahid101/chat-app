@@ -10,6 +10,20 @@ export function CtaSection() {
             aria-hidden
             className="absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-primary/15 blur-3xl"
           />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_100%,black_20%,transparent_75%)]"
+          />
+          <div
+            aria-hidden
+            style={{ animationDuration: "9s" }}
+            className="absolute -bottom-24 -left-16 size-72 animate-floatY rounded-full bg-primary/15 blur-3xl"
+          />
+          <div
+            aria-hidden
+            style={{ animationDuration: "11s" }}
+            className="absolute -right-14 -top-24 size-64 animate-floatX rounded-full bg-accent blur-2xl"
+          />
           <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             Your people are one message away
           </p>
