@@ -75,11 +75,18 @@ export function ChatView() {
     setViewingConversation(activeConversationId);
   }, [activeConversationId, setViewingConversation]);
 
-  // Browsers block audio until a gesture — unlock the chime on first click.
+  // Browsers block audio until a gesture — unlock the chime on first click,
+  // and wake the (suspended) context again whenever the tab becomes visible.
   useEffect(() => {
+    const rewake = () => {
+      if (document.visibilityState === "visible") unlockAudio();
+    };
     window.addEventListener("pointerdown", unlockAudio, { once: true });
-    return () =>
+    document.addEventListener("visibilitychange", rewake);
+    return () => {
       window.removeEventListener("pointerdown", unlockAudio);
+      document.removeEventListener("visibilitychange", rewake);
+    };
   }, []);
 
   if (!sessionChecked || !token || initializing) return <ChatSkeleton />;

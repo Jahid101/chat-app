@@ -21,6 +21,21 @@ export type ConnectionState = "demo" | "connecting" | "live" | "offline";
 
 const EMPTY_USER: User = { id: "", name: "" };
 
+const UNREAD_STORAGE_KEY = "Chatty-unread-counts";
+
+// Badges survive reloads; zero entries are pruned on write.
+function loadUnreadCounts(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = JSON.parse(
+      window.localStorage.getItem(UNREAD_STORAGE_KEY) ?? "{}",
+    );
+    return raw && typeof raw === "object" ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
 async function fetchConversations(token: string): Promise<Conversation[]> {
   const raw = await chatApi.conversations(token);
   const list = Array.isArray(raw)
@@ -37,8 +52,6 @@ export function useChat() {
   const [connection, setConnection] = useState<ConnectionState>(() =>
     readToken() ? "connecting" : "demo",
   );
-  // True while the session (me + conversations) is being fetched for a token;
-  // lets views hold a skeleton instead of flashing default data.
   const [initializing, setInitializing] = useState<boolean>(
     () => Boolean(readToken()),
   );
@@ -49,6 +62,7 @@ export function useChat() {
     setUser(EMPTY_USER);
     setConversations([]);
     setMessages({});
+    setUnreadCounts({});
     setConnection("demo");
     setInitializing(false);
   }, []);
@@ -122,7 +136,23 @@ export function useChat() {
 
   // Locally-tracked unread counts — the API has no seen/delivered state,
   // so badges are ours: incremented on background messages, zeroed on open.
-  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [unreadCounts, setUnreadCounts] =
+    useState<Record<string, number>>(loadUnreadCounts);
+
+  useEffect(() => {
+    try {
+      const kept = Object.fromEntries(
+        Object.entries(unreadCounts).filter(([, count]) => count > 0),
+      );
+      if (Object.keys(kept).length === 0) {
+        window.localStorage.removeItem(UNREAD_STORAGE_KEY);
+      } else {
+        window.localStorage.setItem(UNREAD_STORAGE_KEY, JSON.stringify(kept));
+      }
+    } catch {
+      // Storage unavailable (private mode etc.) — badges just won't persist.
+    }
+  }, [unreadCounts]);
 
   const markConversationRead = useCallback((id: string) => {
     setUnreadCounts((prev) => (prev[id] ? { ...prev, [id]: 0 } : prev));
@@ -136,7 +166,9 @@ export function useChat() {
 
     const socket = io(SOCKET_BASE, {
       auth: { token },
-      transports: ["websocket"],
+      // Try websocket first, but fall back to long-polling when the upgrade
+      // is blocked (strict networks, proxies) instead of dying silently.
+      transports: ["websocket", "polling"],
     });
 
     socket.on("connect", () => setConnection("live"));
@@ -185,6 +217,24 @@ export function useChat() {
       socket.disconnect();
     };
   }, [currentUserIdRef, refreshConversations, token]);
+
+  // Safety net: group changes made by others (rename, being added to a new
+  // group) only reach us if the backend emits conversation:updated. Poll
+  // lightly while the tab is visible so the sidebar can't go stale.
+  useEffect(() => {
+    if (!token) return;
+    const sync = () => {
+      if (document.visibilityState === "visible") void refreshConversations();
+    };
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", sync);
+    const timer = window.setInterval(sync, 30_000);
+    return () => {
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", sync);
+      window.clearInterval(timer);
+    };
+  }, [refreshConversations, token]);
 
   // Conversation history ------------------------------------------------------
   const [threadLoading, setThreadLoading] = useState(false);
