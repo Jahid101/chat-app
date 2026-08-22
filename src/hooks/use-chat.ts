@@ -174,8 +174,6 @@ export function useChat() {
     socket.on("connect", () => setConnection("live"));
     socket.on("disconnect", () => setConnection("offline"));
     socket.on("connect_error", (error) => {
-      // TEMP-DEBUG: remove after diagnosing connection issues
-      console.warn("[chatty] socket connect_error:", error?.message);
       setConnection("offline");
       const message = String(error?.message ?? "");
       if (/auth|token|unauthor|invalid|401/i.test(message)) {
